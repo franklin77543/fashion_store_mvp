@@ -27,7 +27,7 @@ class ProductBase(BaseModel):
     rating: Optional[float] = None
     review_count: Optional[int] = None
     view_count: Optional[int] = None
-    
+
     model_config = {'from_attributes': True}
 
 class ProductCreate(ProductBase):
@@ -64,12 +64,16 @@ class ProductImage(BaseModel):
     image_url: str
     is_primary: bool
     display_order: int
-
+    model_config = {
+        "from_attributes": True
+    }
 
 class ProductAttribute(BaseModel):
     attribute_key: str
     attribute_value: str
-
+    model_config = {
+        "from_attributes": True
+    }
 
 class ProductDetail(ProductBase):
     id: int
