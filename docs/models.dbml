@@ -1,0 +1,347 @@
+// Fashion Store MVP - Database Schema
+// Generated: 2025-11-20
+// Based on: Fashion Product Images Dataset (Kaggle)
+
+Project FashionStore {
+  database_type: 'SQLite'
+  Note: '''
+    # Fashion Store MVP Database
+    
+    這個資料庫設計基於 Fashion Product Images Dataset
+    包含商品、分類、品牌、訂單等核心功能
+    
+    設計原則:
+    - 正規化設計，避免資料重複
+    - 使用查找表 (Lookup Tables) 管理分類、顏色等
+    - 支援多對多關聯（商品-標籤）
+    - 為常用查詢建立索引
+  '''
+}
+
+// ============================================
+// 核心表：商品資料
+// ============================================
+
+Table products {
+  id integer [primary key, note: '商品唯一識別碼（來自 CSV）']
+  product_display_name varchar(500) [not null, note: '商品顯示名稱']
+  
+  // 分類關聯
+  gender_id integer [ref: > genders.id, note: '性別分類']
+  master_category_id integer [ref: > master_categories.id, note: '主分類']
+  sub_category_id integer [ref: > sub_categories.id, note: '子分類']
+  article_type_id integer [ref: > article_types.id, note: '商品類型']
+  
+  // 商品屬性
+  base_colour_id integer [ref: > colours.id, note: '基礎顏色']
+  season_id integer [ref: > seasons.id, note: '適用季節']
+  usage_id integer [ref: > usages.id, note: '使用場合']
+  year integer [note: '年份']
+  
+  // 品牌與價格
+  brand_id integer [ref: > brands.id, note: '品牌']
+  price decimal(10,2) [note: '原價']
+  discounted_price decimal(10,2) [note: '折扣價']
+  discount_percent integer [note: '折扣百分比']
+  
+  // 商品描述
+  description text [note: '商品詳細描述（來自 JSON）']
+  
+  // 圖片資訊
+  image_url varchar(1000) [note: '主圖片 URL']
+  has_front_image boolean [default: false, note: '是否有正面圖']
+  has_back_image boolean [default: false, note: '是否有背面圖']
+  has_search_image boolean [default: false, note: '是否有搜尋用圖']
+  
+  // 商品狀態
+  is_active boolean [default: true, note: '是否上架']
+  stock_count integer [default: 0, note: '庫存數量']
+  
+  // 評分與銷售
+  rating decimal(3,2) [default: 0, note: '平均評分 (0-5)']
+  review_count integer [default: 0, note: '評論數量']
+  view_count integer [default: 0, note: '瀏覽次數']
+  
+  // 時間戳記
+  created_at timestamp [default: `CURRENT_TIMESTAMP`, note: '建立時間']
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`, note: '更新時間']
+  
+  indexes {
+    (gender_id, master_category_id) [name: 'idx_gender_category']
+    (base_colour_id, season_id) [name: 'idx_colour_season']
+    (price, discounted_price) [name: 'idx_price']
+    (is_active, created_at) [name: 'idx_active_created']
+    product_display_name [name: 'idx_product_name', type: btree]
+  }
+  
+  Note: '商品主表，儲存所有商品的核心資訊'
+}
+
+// ============================================
+// 查找表 (Lookup Tables)
+// ============================================
+
+Table genders {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null, note: 'Men, Women, Boys, Girls, Unisex']
+  display_name varchar(50) [not null, note: '顯示名稱（中文）']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  Note: '性別分類'
+}
+
+Table master_categories {
+  id integer [primary key, increment]
+  name varchar(100) [unique, not null, note: 'Apparel, Accessories, Footwear, etc.']
+  display_name varchar(100) [not null, note: '顯示名稱（中文）']
+  description text [note: '分類說明']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  Note: '主要商品分類'
+}
+
+Table sub_categories {
+  id integer [primary key, increment]
+  master_category_id integer [ref: > master_categories.id, note: '所屬主分類']
+  name varchar(100) [not null, note: 'Topwear, Bottomwear, Shoes, etc.']
+  display_name varchar(100) [not null, note: '顯示名稱（中文）']
+  description text [note: '分類說明']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (master_category_id, name) [unique, name: 'idx_master_sub_unique']
+  }
+  
+  Note: '子分類（隸屬於主分類）'
+}
+
+Table article_types {
+  id integer [primary key, increment]
+  sub_category_id integer [ref: > sub_categories.id, note: '所屬子分類']
+  name varchar(100) [not null, note: 'Tshirts, Jeans, Watches, etc.']
+  display_name varchar(100) [not null, note: '顯示名稱（中文）']
+  description text [note: '類型說明']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (sub_category_id, name) [unique, name: 'idx_sub_article_unique']
+  }
+  
+  Note: '商品類型（最細分類）'
+}
+
+Table colours {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null, note: 'Black, White, Blue, etc.']
+  display_name varchar(50) [not null, note: '顯示名稱（中文）']
+  hex_code varchar(7) [note: 'HEX 顏色碼 (#000000)']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  Note: '顏色查找表'
+}
+
+Table seasons {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null, note: 'Summer, Winter, Fall, Spring']
+  display_name varchar(50) [not null, note: '顯示名稱（中文）']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  Note: '季節分類'
+}
+
+Table usages {
+  id integer [primary key, increment]
+  name varchar(100) [unique, not null, note: 'Casual, Formal, Sports, Ethnic, etc.']
+  display_name varchar(100) [not null, note: '顯示名稱（中文）']
+  description text [note: '使用場合說明']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  Note: '使用場合分類'
+}
+
+Table brands {
+  id integer [primary key, increment]
+  name varchar(200) [unique, not null, note: '品牌名稱']
+  display_name varchar(200) [note: '品牌顯示名稱（中文/英文）']
+  description text [note: '品牌簡介']
+  logo_url varchar(1000) [note: '品牌 Logo URL']
+  is_active boolean [default: true, note: '是否啟用']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  Note: '品牌資料表'
+}
+
+// ============================================
+// 擴展表：商品詳細資訊
+// ============================================
+
+Table product_images {
+  id integer [primary key, increment]
+  product_id integer [ref: > products.id, note: '所屬商品']
+  image_type varchar(50) [not null, note: 'default, front, back, search, etc.']
+  image_url varchar(1000) [not null, note: '圖片 URL']
+  resolution varchar(20) [note: '解析度 (1080X1440, 360X480, etc.)']
+  is_primary boolean [default: false, note: '是否為主圖']
+  display_order integer [default: 0, note: '顯示順序']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (product_id, image_type) [name: 'idx_product_image_type']
+    (product_id, is_primary) [name: 'idx_product_primary_image']
+  }
+  
+  Note: '商品多圖片資料'
+}
+
+Table product_attributes {
+  id integer [primary key, increment]
+  product_id integer [ref: > products.id, note: '所屬商品']
+  attribute_key varchar(100) [not null, note: '屬性鍵（Pattern, Fit Type, etc.）']
+  attribute_value text [not null, note: '屬性值']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (product_id, attribute_key) [name: 'idx_product_attr']
+  }
+  
+  Note: '商品屬性（JSON 中的 articleAttributes）'
+}
+
+Table product_sizes {
+  id integer [primary key, increment]
+  product_id integer [ref: > products.id, note: '所屬商品']
+  size_name varchar(50) [not null, note: 'S, M, L, XL, 2YRS, etc.']
+  stock_count integer [default: 0, note: '該尺寸庫存']
+  is_available boolean [default: true, note: '是否可購買']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (product_id, size_name) [unique, name: 'idx_product_size_unique']
+  }
+  
+  Note: '商品尺寸與庫存'
+}
+
+// ============================================
+// 訂單系統 (基礎版 - Phase 1)
+// ============================================
+
+Table orders {
+  id integer [primary key, increment]
+  order_number varchar(50) [unique, not null, note: '訂單編號']
+  
+  // 收件人資訊
+  customer_name varchar(200) [not null, note: '收件人姓名']
+  customer_email varchar(200) [note: '收件人 Email']
+  customer_phone varchar(50) [not null, note: '收件人電話']
+  shipping_address text [not null, note: '收件地址']
+  
+  // 訂單金額
+  subtotal decimal(10,2) [not null, note: '商品小計']
+  shipping_fee decimal(10,2) [default: 0, note: '運費']
+  discount_amount decimal(10,2) [default: 0, note: '折扣金額']
+  total_amount decimal(10,2) [not null, note: '訂單總額']
+  
+  // 訂單狀態
+  status varchar(50) [not null, default: 'pending', note: 'pending, confirmed, shipped, delivered, cancelled']
+  payment_status varchar(50) [default: 'unpaid', note: 'unpaid, paid, refunded']
+  payment_method varchar(50) [note: 'cash_on_delivery, credit_card, etc.']
+  
+  // 備註
+  customer_note text [note: '客戶備註']
+  admin_note text [note: '管理員備註']
+  
+  // 時間戳記
+  created_at timestamp [default: `CURRENT_TIMESTAMP`, note: '訂單建立時間']
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`, note: '最後更新時間']
+  confirmed_at timestamp [note: '訂單確認時間']
+  shipped_at timestamp [note: '出貨時間']
+  delivered_at timestamp [note: '送達時間']
+  
+  indexes {
+    order_number [name: 'idx_order_number']
+    status [name: 'idx_order_status']
+    (created_at, status) [name: 'idx_created_status']
+  }
+  
+  Note: '訂單主表'
+}
+
+Table order_items {
+  id integer [primary key, increment]
+  order_id integer [ref: > orders.id, note: '所屬訂單']
+  product_id integer [ref: > products.id, note: '商品']
+  
+  // 訂單當下的商品資訊（防止後續價格變動）
+  product_name varchar(500) [not null, note: '商品名稱（快照）']
+  size_name varchar(50) [note: '尺寸']
+  unit_price decimal(10,2) [not null, note: '單價（快照）']
+  quantity integer [not null, default: 1, note: '數量']
+  subtotal decimal(10,2) [not null, note: '小計']
+  
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    order_id [name: 'idx_order_items_order']
+    product_id [name: 'idx_order_items_product']
+  }
+  
+  Note: '訂單項目明細'
+}
+
+// ============================================
+// 商品評論系統 (Phase 2)
+// ============================================
+
+Table product_reviews {
+  id integer [primary key, increment]
+  product_id integer [ref: > products.id, note: '所屬商品']
+  
+  // 評論者資訊
+  reviewer_name varchar(200) [not null, note: '評論者姓名']
+  reviewer_email varchar(200) [note: '評論者 Email']
+  
+  // 評論內容
+  rating integer [not null, note: '評分 (1-5)']
+  title varchar(200) [note: '評論標題']
+  content text [not null, note: '評論內容']
+  
+  // 審核狀態
+  is_verified boolean [default: false, note: '是否驗證購買']
+  is_approved boolean [default: false, note: '是否通過審核']
+  
+  // 互動統計
+  helpful_count integer [default: 0, note: '有幫助票數']
+  
+  // 時間戳記
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  approved_at timestamp [note: '審核通過時間']
+  
+  indexes {
+    product_id [name: 'idx_review_product']
+    (product_id, is_approved) [name: 'idx_review_approved']
+    rating [name: 'idx_review_rating']
+  }
+  
+  Note: '商品評論（Phase 2 功能）'
+}
+
+// ============================================
+// 商品向量 (AI 推薦 - Phase 3)
+// ============================================
+
+Table product_embeddings {
+  id integer [primary key, increment]
+  product_id integer [ref: > products.id, unique, note: '所屬商品']
+  embedding_model varchar(100) [not null, note: '使用的 embedding 模型']
+  embedding_vector blob [not null, note: '向量資料（序列化存儲）']
+  embedding_text text [note: '用於生成向量的文本']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    product_id [name: 'idx_embedding_product']
+  }
+  
+  Note: '商品語義向量（用於 AI 推薦，Phase 3）'
+}
