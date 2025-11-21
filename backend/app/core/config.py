@@ -12,6 +12,7 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str = "sqlite:///./fashion_store.db"
+    DB_PATH: str = "F:\\My_Repo\\Github\\20251119_Fashion-Store-MVP\\backend\\fashion_store.db"
 
     # App Settings
     APP_NAME: str = "Fashion Store MVP"
@@ -41,7 +42,7 @@ class Settings(BaseSettings):
     MAX_PAGE_SIZE: int = 100
 
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", case_sensitive=True
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=True,
     )
 
     @property

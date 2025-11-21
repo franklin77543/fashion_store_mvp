@@ -6,7 +6,8 @@ class OllamaService:
         self.base_url = base_url
         self.model = model
 
-    async def chat(self, prompt: str, system: Optional[str] = None) -> str:
+    async def chat(self, prompt: str, system: Optional[str] = None, timeout: float = 60.0) -> str:
+        import logging
         payload = {
             "model": self.model,
             "prompt": prompt,
@@ -14,10 +15,21 @@ class OllamaService:
         if system:
             payload["system"] = system
         async with httpx.AsyncClient() as client:
-            response = await client.post(self.base_url, json=payload)
+            response = await client.post(self.base_url, json=payload, timeout=timeout)
             response.raise_for_status()
-            data = response.json()
-            return data.get("response", "")
+            raw_content = response.text
+            logging.info(f"Ollama raw response: {raw_content}")
+            # Handle streaming/multi-line JSON
+            import json
+            last_response = ""
+            for line in raw_content.splitlines():
+                try:
+                    data = json.loads(line)
+                    if "response" in data:
+                        last_response = data["response"]
+                except Exception:
+                    continue
+            return last_response
 
     def parse_json_response(self, response: str) -> Dict[str, Any]:
         """
