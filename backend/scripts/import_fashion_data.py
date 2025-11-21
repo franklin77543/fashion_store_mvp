@@ -151,33 +151,6 @@ class FashionDataImporter:
         print(f"✅ 主分類: {total} 個 (新增 {created} 個)")
         self.stats["lookup_tables"]["master_categories"] = total
     
-    def _import_categories(self, df: pd.DataFrame):
-        """匯入主分類"""
-        print("\n📝 匯入主分類 (Categories)...")
-        
-        unique_categories = df['category'].dropna().unique() if 'category' in df.columns else df['masterCategory'].dropna().unique()
-        created = 0
-        
-        for cat_name in unique_categories:
-            existing = self.db.query(Category).filter_by(name=cat_name).first()
-            if not existing:
-                category = Category(
-                    name=cat_name,
-                    display_name=self._translate_category(cat_name)
-                )
-                self.db.add(category)
-                created += 1
-        
-        self.db.commit()
-        
-        # 建立快取
-        for cat in self.db.query(Category).all():
-            self.category_cache[cat.name] = cat.id
-        
-        total = len(self.category_cache)
-        print(f"✅ 主分類: {total} 個 (新增 {created} 個)")
-        self.stats["lookup_tables"]["categories"] = total
-    
     def _import_sub_categories(self, df: pd.DataFrame):
         """匯入子分類"""
         print("\n📝 匯入子分類 (Sub Categories)...")
@@ -536,7 +509,29 @@ class FashionDataImporter:
                 attribute_value=value
             )
             self.db.add(product_attr)
-    
+
+    def _import_genders(self, df: pd.DataFrame):
+        """匯入性別查找表"""
+        print("\n📝 匯入性別 (Genders)...")
+        unique_genders = df['gender'].dropna().unique()
+        created = 0
+        for gender_name in unique_genders:
+            existing = self.db.query(Gender).filter_by(name=gender_name).first()
+            if not existing:
+                gender = Gender(
+                    name=gender_name,
+                    display_name=self._translate_gender(gender_name)
+                )
+                self.db.add(gender)
+                created += 1
+        self.db.commit()
+        # 建立快取
+        for gender in self.db.query(Gender).all():
+            self.gender_cache[gender.name] = gender.id
+        total = len(self.gender_cache)
+        print(f"✅ 性別: {total} 個 (新增 {created} 個)")
+        self.stats["lookup_tables"]["genders"] = total
+
     def _read_product_json(self, product_id: int) -> Optional[Dict]:
         """讀取商品 JSON 檔案"""
         json_file = self.json_dir / f"{product_id}.json"
