@@ -26,4 +26,4 @@ app.include_router(recommendation_router, prefix="/api/v1")
 def health():
     return {"status": "ok"}
 
-app.mount("/images", StaticFiles(directory="../fashion-dataset/images"), name="images")
+app.mount("/api/v1/images", StaticFiles(directory="../fashion-dataset/images"), name="images")

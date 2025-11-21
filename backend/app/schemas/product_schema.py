@@ -4,6 +4,7 @@ from datetime import datetime
 
 
 class ProductBase(BaseModel):
+    id: Optional[int] = None
     product_display_name: Optional[str] = None
     gender_id: Optional[int] = None
     master_category_id: Optional[int] = None
