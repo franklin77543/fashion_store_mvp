@@ -1,11 +1,24 @@
-fastapi==0.115.0
-uvicorn[standard]==0.32.0
-python-multipart==0.0.9
-sqlalchemy==2.0.35
-pandas>=2.0.0
-python-dotenv==1.0.1
-pydantic-settings==2.6.1
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pillow>=10.0.0
-httpx>=0.27.0
+# Web framework
+fastapi==0.115.0           # 主後端框架
+uvicorn[standard]==0.32.0  # ASGI server，用來啟動 FastAPI
+python-multipart==0.0.9    # 支援表單與檔案上傳
+
+# Database & ORM
+sqlalchemy==2.0.35         # ORM，資料庫操作
+pandas>=2.0.0              # 資料處理與分析
+python-dotenv==1.0.1       # 環境變數管理
+pydantic-settings==2.6.1   # Pydantic v2 的設定管理工具
+
+# Testing
+pytest==7.4.3              # 單元測試框架
+pytest-asyncio==0.21.1     # 非同步測試支援
+
+# Image & HTTP
+pillow>=10.0.0             # 圖片處理 (縮圖、轉檔等)
+httpx>=0.27.0              # 非同步 HTTP client，呼叫外部 API
+
+# AI / NLP
+torch==2.9.1               # PyTorch，深度學習框架
+transformers==4.57.1       # Hugging Face Transformers，模型下載與推理
+sentence-transformers==5.1.2  # 語意嵌入模型 (Semantic Search, 相似度計算)
+tqdm==4.65.0                # 進度條顯示
