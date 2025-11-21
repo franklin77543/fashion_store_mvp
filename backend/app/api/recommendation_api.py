@@ -12,15 +12,12 @@ class ProductRecommendation(BaseModel):
     matchScore: float
     reason: str
 
-class RecommendationResponse(BaseModel):
-    recommendations: List[ProductRecommendation]
-
-router = APIRouter(prefix="/api/v1", tags=["recommendation"])
+router = APIRouter(prefix="/recommend", tags=["recommend"])
 
 # Dependency
 recommendation_service = RecommendationService()
 
-@router.post("/recommend", response_model=RecommendationResponse)
+@router.post("", response_model=List[ProductRecommendation])
 async def recommend_api(request: RecommendationRequest):
     results = await recommendation_service.recommend(request.query, request.limit)
-    return RecommendationResponse(recommendations=results)
+    return results

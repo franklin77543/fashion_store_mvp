@@ -37,3 +37,48 @@ def test_list_master_categories():
     if response.json():
         assert "name" in response.json()[0]
         assert "display_name" in response.json()[0]
+
+def test_recommend_exact():
+    payload = {"query": "白色襯衫", "limit": 5}
+    response = httpx.post(f"{BASE_URL}/recommend", json=payload, timeout=30.0)
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) <= 5
+    if data:
+        assert "product_id" in data[0]
+        assert "matchScore" in data[0]
+        assert "reason" in data[0]
+
+def test_recommend_style():
+    payload = {"query": "正式商務風格", "limit": 10}
+    response = httpx.post(f"{BASE_URL}/recommend", json=payload, timeout=30.0)
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) <= 10
+    if data:
+        assert "product_id" in data[0]
+        assert "reason" in data[0]
+
+def test_recommend_occasion():
+    payload = {"query": "約會穿搭推薦", "limit": 10}
+    response = httpx.post(f"{BASE_URL}/recommend", json=payload, timeout=30.0)
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) <= 10
+    if data:
+        assert "product_id" in data[0]
+        assert "reason" in data[0]
+
+def test_recommend_semantic():
+    payload = {"query": "適合夏天海邊的服飾", "limit": 10}
+    response = httpx.post(f"{BASE_URL}/recommend", json=payload, timeout=30.0)
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) <= 10
+    if data:
+        assert "product_id" in data[0]
+        assert "reason" in data[0]

@@ -19,7 +19,7 @@ app.add_middleware(
 )
 app.include_router(product_router, prefix="/api/v1")
 app.include_router(category_router, prefix="/api/v1")
-app.include_router(recommendation_router)
+app.include_router(recommendation_router, prefix="/api/v1")
 
 
 @app.get("/api/v1/health")
