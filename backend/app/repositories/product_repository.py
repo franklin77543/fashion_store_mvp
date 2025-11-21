@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app.models.product_model import Product
 from typing import List, Optional
+from sqlalchemy import func
 
 
 class ProductRepository:
@@ -37,7 +38,7 @@ class ProductRepository:
     def search_products(self, query: str, skip: int = 0, limit: int = 20) -> List[Product]:
         return (
             self.db.query(Product)
-            .filter(Product.product_display_name.ilike(f"%{query}%"))
+            .filter(func.lower(Product.product_display_name).like(f"%{query.lower()}%"))
             .offset(skip)
             .limit(limit)
             .all()

@@ -29,11 +29,8 @@ class ProductService:
         return [ProductBase.model_validate(p) for p in products]
 
     def search_products(self, query: str, skip: int = 0, limit: int = 20) -> List[ProductBase]:
-        products = self.repo.get_products(skip=skip, limit=limit)
-        filtered = [
-            p for p in products if query.lower() in p.product_display_name.lower()
-        ]
-        return [ProductBase.model_validate(p) for p in filtered]
+        products = self.repo.search_products(query=query, skip=skip, limit=limit)
+        return [ProductBase.model_validate(p) for p in products]
 
     def filter_products(self, filters: dict, skip: int = 0, limit: int = 20) -> List[ProductBase]:
         products = self.repo.get_products(skip=skip, limit=limit)
