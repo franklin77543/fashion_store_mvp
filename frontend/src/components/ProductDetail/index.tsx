@@ -12,14 +12,14 @@ const ProductDetail: React.FC<Props> = ({ product }) => {
         {product.image ? (
           <img
             src={`${import.meta.env.VITE_API_BASE_URL?.replace(/\/$/,"") || "http://localhost:8000/api/v1"}/../images/${product.image}`}
-            alt={product.name}
+            alt={product.product_display_name}
             className="object-cover h-full w-full"
           />
         ) : (
           <span className="text-gray-400">圖片</span>
         )}
       </div>
-      <div className="font-bold text-2xl mb-2">{product.name}</div>
+      <div className="font-bold text-2xl mb-2">{product.product_display_name}</div>
       <div className="text-blue-600 font-semibold text-xl mb-2">${product.price}</div>
       {/* 其他商品資訊顯示 */}
       <div className="text-gray-700">商品詳細資訊...</div>
