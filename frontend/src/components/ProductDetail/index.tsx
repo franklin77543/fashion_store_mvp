@@ -9,9 +9,9 @@ const ProductDetail: React.FC<Props> = ({ product }) => {
   return (
     <div className="p-4">
       <div className="h-60 bg-gray-100 mb-4 flex items-center justify-center overflow-hidden">
-        {product.image ? (
+        {true ? (
           <img
-            src={`${import.meta.env.VITE_API_BASE_URL?.replace(/\/$/,"") || "http://localhost:8000/api/v1"}/../images/${product.image}`}
+            src={`${import.meta.env.VITE_API_BASE_URL?.replace(/\/$/,"") || "http://localhost:8000"}/images/${product.id}.jpg`}
             alt={product.product_display_name}
             className="object-cover h-full w-full"
           />

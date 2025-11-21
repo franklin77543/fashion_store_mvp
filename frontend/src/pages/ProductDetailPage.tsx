@@ -1,11 +1,11 @@
 import React from "react";
 import ProductDetail from "../components/ProductDetail";
 import { useStore } from "../store";
+import { useParams } from "react-router-dom";
 
-// 實際專案可用 React Router 取得 id 並 fetch 詳細資料
 const ProductDetailPage: React.FC = () => {
-  // 這裡僅示範，假設 store.products[0] 為展示商品
-  const product = useStore((s) => s.products[0]);
+  const { id } = useParams();
+  const product = useStore((s) => s.products.find((p) => String(p.id) === id));
   if (!product) return <div className="p-4">找不到商品</div>;
   return (
     <div className="max-w-3xl mx-auto p-4">
